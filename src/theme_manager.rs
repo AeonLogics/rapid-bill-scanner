@@ -30,35 +30,35 @@ impl ThemeManager {
         }
     }
 
-    /// Dark theme (Catppuccin Mocha style slate)
+    /// Deep Pitch Dark + Purple Accent Theme
     fn dark() -> Self {
         Self {
-            bg_app: rgba(0x1e1e2eff),
-            panel_bg: rgba(0x181825ff),
-            header_bg: rgba(0x11111bff),
-            border_color: rgba(0x313244ff),
-            text_main: rgba(0xcdd6f4ff),
-            text_muted: rgba(0xa6adc8ff),
-            accent: rgba(0x89b4faff),
-            button_bg: rgba(0x313244ff),
-            button_hover: rgba(0x45475aff),
-            button_active: rgba(0x89b4faff),
+            bg_app: rgba(0x000010ff),
+            panel_bg: rgba(0x0a0914ff),
+            header_bg: rgba(0x05040cff),
+            border_color: rgba(0x26233aff),
+            text_main: rgba(0xe0def4ff),
+            text_muted: rgba(0x908caaff),
+            accent: rgba(0xcba6f7ff),
+            button_bg: rgba(0x1f1d2eff),
+            button_hover: rgba(0x2a283eff),
+            button_active: rgba(0xcba6f7ff),
         }
     }
 
-    /// Light theme (Catppuccin Latte style)
+    /// Light theme (Soft Lavender)
     fn light() -> Self {
         Self {
-            bg_app: rgba(0xeff1f5ff),
-            panel_bg: rgba(0xe6e9efff),
-            header_bg: rgba(0xdce0e8ff),
-            border_color: rgba(0xccd0daff),
-            text_main: rgba(0x4c4f69ff),
-            text_muted: rgba(0x6c6f85ff),
-            accent: rgba(0x1e66f5ff),
-            button_bg: rgba(0xe6e9efff),
-            button_hover: rgba(0xccd0daff),
-            button_active: rgba(0x1e66f5ff),
+            bg_app: rgba(0xf4f0f8ff),
+            panel_bg: rgba(0xe9e3f0ff),
+            header_bg: rgba(0xded6e8ff),
+            border_color: rgba(0xccc3d8ff),
+            text_main: rgba(0x4a405aff),
+            text_muted: rgba(0x6e637eff),
+            accent: rgba(0x8839efff),
+            button_bg: rgba(0xe9e3f0ff),
+            button_hover: rgba(0xccc3d8ff),
+            button_active: rgba(0x8839efff),
         }
     }
 }

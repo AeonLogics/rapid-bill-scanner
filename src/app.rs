@@ -1,14 +1,11 @@
 use crate::theme_manager::ThemeManager;
-use crate::views::{Header, Tab};
-use gpui::{
-    App, Bounds, Entity, SharedString, TitlebarOptions, Window, WindowBounds, WindowOptions, px,
-    size,
-};
+use crate::views::{Header, TabView};
+use gpui::{App, Bounds, Entity, Window, WindowBounds, WindowOptions, px, size};
 use gpui::{div, prelude::*};
 
 pub struct RapidBillScanner {
-    header: Entity<Header>,
-    tab: Entity<Tab>,
+    pub header: Entity<Header>,
+    pub tab_view: Entity<TabView>,
 }
 
 impl RapidBillScanner {
@@ -21,10 +18,7 @@ impl RapidBillScanner {
         let win_size = Self::bounds(cx);
         WindowOptions {
             window_bounds: Some(win_size),
-            titlebar: Some(TitlebarOptions {
-                title: Some(SharedString::new("Rapid Bill Scanner -- AeonLogics")),
-                ..Default::default()
-            }),
+            titlebar: None,
             ..Default::default()
         }
     }
@@ -36,8 +30,11 @@ impl Render for RapidBillScanner {
 
         div()
             .size_full()
+            .flex()
+            .flex_col()
             .bg(theme.bg_app)
-            .text_color(theme.accent)
-            .child("FAAAAAAAAAAAAAAAAAAAAAAAAAAAWH YOYU")
+            .text_color(theme.text_main)
+            .child(self.header.clone())
+            .child(div().flex_1().w_full().child(self.tab_view.clone()))
     }
 }
