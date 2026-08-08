@@ -13,3 +13,8 @@ multiinput = "0.1.0"
 winreg = "0.56.0"
 serde = { version = "1.0.229", features = ["derive"] }
 schemars = "1.2.2"
+
+
+
+[build-dependencies]
+embed-resource = "2.5"

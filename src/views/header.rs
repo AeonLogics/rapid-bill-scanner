@@ -1,7 +1,9 @@
+use std::sync::Arc;
+
 use crate::{theme_manager::ThemeManager, views::TabView};
 use gpui::{
-    Context, Entity, InteractiveElement, IntoElement, ParentElement, Render,
-    StatefulInteractiveElement, Styled, Window, div, px,
+    Context, Entity, Image, ImageSource, InteractiveElement, IntoElement, ParentElement, Render,
+    StatefulInteractiveElement, Styled, Window, div, img, px,
 };
 use gpui_component::{Icon, IconName, StyledExt, TitleBar};
 
@@ -80,6 +82,8 @@ impl Header {
 impl Render for Header {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Header>) -> impl IntoElement {
         let theme = cx.global::<ThemeManager>();
+        let bytes: Vec<u8> = include_bytes!("../../public/icon.ico").into();
+        let image = ImageSource::Image(Arc::new(Image::from_bytes(gpui::ImageFormat::Ico, bytes)));
 
         TitleBar::new()
             .w_full()
@@ -89,11 +93,11 @@ impl Render for Header {
             .border_color(theme.border_color)
             .child(
                 div()
+                    .child(img(image).w(px(32.)))
                     .size_full()
                     .flex()
+                    .gap_1()
                     .items_center()
-                    .gap_10()
-                    .pl_3()
                     .pr(px(75.0))
                     .child(
                         div()

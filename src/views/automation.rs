@@ -1,7 +1,9 @@
-use gpui::{Window, div, prelude::*};
+use gpui::{div, prelude::*, Window};
 
 pub struct AutomationView {
     counter: usize,
+    total_bills_processed: usize,
+    device: multiinput::DevicesDisplayInfo,
     // devices: Vec<Device>,
 }
 
