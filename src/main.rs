@@ -1,7 +1,7 @@
 mod app;
 mod theme_manager;
+mod ui;
 mod views;
-
 use gpui::{App, AppContext};
 use gpui_component::Root;
 
@@ -35,3 +35,8 @@ pub fn main() {
             .detach();
         });
 }
+
+// fn main() {
+//     // let rezsult = core::change_computer_name("Aeon Roamer".to_string());
+//     core::register_raw_input_listener();
+// }

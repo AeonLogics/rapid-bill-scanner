@@ -1,0 +1,10 @@
+E:\rapid-bill-scan\lasersink\target\debug\deps\windows_collections-885e2db50bb8403f.d: C:\Users\Aeon\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-collections-0.3.2\src\lib.rs C:\Users\Aeon\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-collections-0.3.2\src\bindings.rs C:\Users\Aeon\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-collections-0.3.2\src\iterable.rs C:\Users\Aeon\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-collections-0.3.2\src\map_view.rs C:\Users\Aeon\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-collections-0.3.2\src\vector_view.rs C:\Users\Aeon\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-collections-0.3.2\src\../readme.md
+
+E:\rapid-bill-scan\lasersink\target\debug\deps\libwindows_collections-885e2db50bb8403f.rmeta: C:\Users\Aeon\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-collections-0.3.2\src\lib.rs C:\Users\Aeon\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-collections-0.3.2\src\bindings.rs C:\Users\Aeon\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-collections-0.3.2\src\iterable.rs C:\Users\Aeon\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-collections-0.3.2\src\map_view.rs C:\Users\Aeon\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-collections-0.3.2\src\vector_view.rs C:\Users\Aeon\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-collections-0.3.2\src\../readme.md
+
+C:\Users\Aeon\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-collections-0.3.2\src\lib.rs:
+C:\Users\Aeon\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-collections-0.3.2\src\bindings.rs:
+C:\Users\Aeon\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-collections-0.3.2\src\iterable.rs:
+C:\Users\Aeon\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-collections-0.3.2\src\map_view.rs:
+C:\Users\Aeon\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-collections-0.3.2\src\vector_view.rs:
+C:\Users\Aeon\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-collections-0.3.2\src\../readme.md:

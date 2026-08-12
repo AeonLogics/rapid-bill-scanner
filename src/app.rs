@@ -35,6 +35,12 @@ impl Render for RapidBillScanner {
             .bg(theme.bg_app)
             .text_color(theme.text_main)
             .child(self.header.clone())
-            .child(div().flex_1().w_full().child(self.tab_view.clone()))
+            .child(
+                div()
+                    .flex_1()
+                    .w_full()
+                    .child(self.tab_view.clone())
+                    .size_full(),
+            )
     }
 }

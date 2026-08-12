@@ -13,8 +13,27 @@ multiinput = "0.1.0"
 winreg = "0.56.0"
 serde = { version = "1.0.229", features = ["derive"] }
 schemars = "1.2.2"
+raw-window-handle = "0.6.2"
+lasersink = { path = "lasersink" }
 
+[dependencies.windows]
+version = "0.62.2"
+features = [
+    "Win32_Foundation",
+    "Win32_UI_Input_KeyboardAndMouse",
+]
 
+[dependencies.tokio]
+version = "1.53.1"
+default-features = false
+features = [
+    "sync",
+]
 
 [build-dependencies]
-embed-resource = "2.5"
+embed-resource = "3.0.11"
+
+[workspace]
+members = [
+    "lasersink"
+]
