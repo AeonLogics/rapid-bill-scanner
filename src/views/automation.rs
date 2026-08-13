@@ -2,16 +2,18 @@ use crate::theme_manager::ThemeManager;
 use gpui::{Context, IntoElement, Render, Window, div, prelude::*, px, rgb};
 use gpui_component::StyledExt;
 use gpui_component::button::Button;
-use lasersink::LaserExtractor;
+use lasersink::{LaserExtractor, MemoryManager};
 
 pub struct AutomationView {
     extractor: LaserExtractor,
+    memory: MemoryManager,
 }
 
 impl AutomationView {
     pub fn new() -> AutomationView {
         AutomationView {
             extractor: LaserExtractor::new(),
+            memory: MemoryManager::init(),
         }
     }
 }

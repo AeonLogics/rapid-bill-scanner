@@ -35,8 +35,3 @@ pub fn main() {
             .detach();
         });
 }
-
-// fn main() {
-//     // let rezsult = core::change_computer_name("Aeon Roamer".to_string());
-//     core::register_raw_input_listener();
-// }

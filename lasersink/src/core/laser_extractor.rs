@@ -1,6 +1,7 @@
 use super::lasersink::{
     clear_laser_channel, create_laser_channel, install_hook, is_hook_active, uninstall_hook,
 };
+use crate::core::extractor_state::start_worker_loop;
 use std::thread::{JoinHandle, spawn};
 
 pub struct LaserExtractor {
@@ -29,14 +30,10 @@ impl LaserExtractor {
             return;
         }
 
-        let mut receiver = create_laser_channel();
+        let receiver = create_laser_channel();
         install_hook();
         let handle = spawn(move || {
-            #[allow(irrefutable_let_patterns)]
-            while let Some(vk_key) = receiver.blocking_recv() {
-                println!("LASER SINK VK Code: {}", vk_key);
-            }
-            println!("Thread Ended");
+            start_worker_loop(receiver);
         });
 
         self.worker_handle = Some(handle);

@@ -1,15 +1,15 @@
 use crate::core::window::low_level_keyboard_proc_macro;
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicIsize, Ordering};
-use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender, unbounded_channel};
+use std::sync::mpsc::{Receiver, Sender, channel};
 use windows::Win32::Foundation::HINSTANCE;
 use windows::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows::Win32::UI::WindowsAndMessaging::{
     HHOOK, SetWindowsHookExW, UnhookWindowsHookEx, WH_KEYBOARD_LL,
 };
 
-pub type LaserTransmitter = UnboundedSender<char>;
-pub type LaserReceiver = UnboundedReceiver<char>;
+pub type LaserTransmitter = Sender<char>;
+pub type LaserReceiver = Receiver<char>;
 
 pub(super) static H_HOOK: AtomicIsize = AtomicIsize::new(0);
 pub(super) static LASER_KEY_TRANSMITTER: Mutex<Option<LaserTransmitter>> = Mutex::new(None);
@@ -50,7 +50,7 @@ pub fn uninstall_hook() {
 }
 
 pub fn create_laser_channel() -> LaserReceiver {
-    let (tx, rx) = unbounded_channel();
+    let (tx, rx) = channel();
     LASER_KEY_TRANSMITTER.lock().unwrap().replace(tx);
     rx
 }
