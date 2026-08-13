@@ -19,7 +19,7 @@ impl AutomationView {
 impl Render for AutomationView {
     fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let theme = cx.global::<ThemeManager>();
-        let label = if self.extractor.is_extractor_active() {
+        let label = if self.extractor.is_active() {
             "Stop"
         } else {
             "Start"
@@ -59,7 +59,7 @@ impl Render for AutomationView {
                 )
                 .child(Button::new(label).label(label).on_click(cx.listener(
                     |this, _event, _window, cx| {
-                        this.extractor.toggle_extractor();
+                        this.extractor.toggle();
                         cx.notify();
                     },
                 ))),
