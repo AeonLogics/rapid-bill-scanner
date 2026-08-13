@@ -1,5 +1,6 @@
 use chrono::{Local, NaiveDate};
 use std::fmt::{Display, Formatter};
+use std::sync::Arc;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BillType {
@@ -65,6 +66,7 @@ impl BillType {
             reference_number: reference.to_string(),
             amount,
             is_late,
+            is_paid: false,
         })
     }
 }
@@ -75,24 +77,37 @@ pub struct LaserBill {
     pub reference_number: String,
     pub amount: u32,
     pub is_late: bool,
+    pub is_paid: bool,
 }
 
 #[derive(Default)]
 pub struct LaserBillManager {
     pub bills: Vec<LaserBill>,
+    pub active_index: usize,
 }
 
 impl LaserBillManager {
     pub const fn init() -> Self {
-        Self { bills: Vec::new() }
+        Self {
+            bills: Vec::new(),
+            active_index: 0,
+        }
     }
 
     pub fn add_bill(&mut self, bill: LaserBill) {
         self.bills.push(bill);
+        self.active_index = self.bills.len().saturating_sub(1);
+    }
+
+    pub fn mark_last_paid(&mut self) {
+        if let Some(last) = self.bills.last_mut() {
+            last.is_paid = true;
+        }
     }
 
     pub fn clear(&mut self) {
         self.bills.clear();
+        self.active_index = 0;
     }
 
     pub fn total_amount(&self) -> u32 {

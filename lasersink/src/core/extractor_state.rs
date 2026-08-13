@@ -22,9 +22,9 @@ impl ExtractorState {
     }
 }
 
-pub fn start_worker_loop(receiver: LaserReceiver) {
+pub fn start_worker_loop(receiver: LaserReceiver, memory_manager: MemoryManager) {
     let mut state = ExtractorState::default();
-    let memory_manager = MemoryManager {};
+    let memory_manager = MemoryManager::init();
 
     loop {
         match receiver.recv_timeout(Duration::from_millis(30)) {
@@ -38,6 +38,7 @@ pub fn start_worker_loop(receiver: LaserReceiver) {
                         // 1. Pass `barcode` to BillExtractor trait logic
                         // 2. Feed processed result to key simulator
                         // --------------------------------------------------
+                        memory_manager.add_bill(barcode.clone());
 
                         state.clear();
                     }

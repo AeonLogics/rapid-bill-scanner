@@ -12,50 +12,63 @@ pub struct ThemeManager {
     pub button_bg: Rgba,
     pub button_hover: Rgba,
     pub button_active: Rgba,
+
+    // Status indicator colors for bill list
+    pub status_paid: Rgba,
+    pub status_unpaid: Rgba,
 }
 
 impl Global for ThemeManager {}
+
 impl ThemeManager {
     pub fn init(cx: &mut gpui::App) {
         let window_appearance: WindowAppearance = cx.window_appearance();
 
         match window_appearance {
             WindowAppearance::Dark | WindowAppearance::VibrantDark => {
-                cx.set_global(Self::dark());
+                cx.set_global(Self::dracula());
             }
             WindowAppearance::Light | WindowAppearance::VibrantLight => {
-                cx.set_global(Self::light());
+                cx.set_global(Self::catppuccin_latte());
             }
         }
     }
 
-    fn dark() -> Self {
+    /// Official Dracula Theme Spec
+    pub fn dracula() -> Self {
         Self {
-            bg_app: rgba(0x05060aff),        // Pure abyss background
-            panel_bg: rgba(0x0e111aff),      // High-contrast elevated panel
-            header_bg: rgba(0x161a26ff),     // Distinct header layer
-            border_color: rgba(0x283047ff),  // Sharp glowing border
-            text_main: rgba(0xf9fafbff),     // Pure crisp white
-            text_muted: rgba(0x94a3b8ff),    // Slate grey text
-            accent: rgba(0x38bdf8ff),        // Electric Sky Blue (#38bdf8)
-            button_bg: rgba(0x1e293bff),     // Dark navy button
-            button_hover: rgba(0x334155ff),  // Bright hover state
-            button_active: rgba(0x38bdf8ff), // Sky blue active glow
+            bg_app: rgba(0x282a36ff),        // Dracula Background (#282a36)
+            panel_bg: rgba(0x21222cff),      // Darker Mantle (#21222c)
+            header_bg: rgba(0x191a21ff),     // Deep Crust (#191a21)
+            border_color: rgba(0x44475aff),  // Current Line / Selection (#44475a)
+            text_main: rgba(0xf8f8f2ff),     // Foreground (#f8f8f2)
+            text_muted: rgba(0x6272a4ff),    // Comment Slate (#6272a4)
+            accent: rgba(0xbd93f9ff),        // Dracula Purple (#bd93f9)
+            button_bg: rgba(0x44475aff),     // Selection / Button Bg
+            button_hover: rgba(0x6272a4ff),  // Hover State
+            button_active: rgba(0xff79c6ff), // Dracula Pink Glow (#ff79c6)
+
+            status_paid: rgba(0x50fa7bff),   // Dracula Green (#50fa7b)
+            status_unpaid: rgba(0xff5555ff), // Dracula Red (#ff5555)
         }
     }
 
-    fn light() -> Self {
+    /// Official Catppuccin Latte (Soft Warm Lavender/Mauve)
+    pub fn catppuccin_latte() -> Self {
         Self {
-            bg_app: rgba(0xf8fafcff),        // Ultra clean light slate
-            panel_bg: rgba(0xffffffff),      // Pure white panels
-            header_bg: rgba(0xf1f5f9ff),     // Soft slate header
-            border_color: rgba(0xcbd5e1ff),  // Defined borders
-            text_main: rgba(0x0f172aff),     // Dark ink text
-            text_muted: rgba(0x64748bff),    // Secondary text
-            accent: rgba(0x0284c7ff),        // Deep electric blue
-            button_bg: rgba(0xf1f5f9ff),     // Soft button bg
-            button_hover: rgba(0xe2e8f0ff),  // Clear hover state
-            button_active: rgba(0x0284c7ff), // Active blue
+            bg_app: rgba(0xeff1f5ff),        // Latte Base (#eff1f5)
+            panel_bg: rgba(0xe6e9efff),      // Latte Mantle (#e6e9ef)
+            header_bg: rgba(0xdce0e8ff),     // Latte Crust (#dce0e8)
+            border_color: rgba(0xccd0daff),  // Latte Surface2 (#ccd0da)
+            text_main: rgba(0x4c4f69ff),     // Latte Text Ink (#4c4f69)
+            text_muted: rgba(0x8c8fa1ff),    // Latte Subtext0 (#8c8fa1)
+            accent: rgba(0x8839efff),        // Latte Mauve/Purple (#8839ef)
+            button_bg: rgba(0xdce0e8ff),     // Soft Button Base
+            button_hover: rgba(0xbcc0ccff),  // Latte Surface1
+            button_active: rgba(0xea76cbff), // Latte Pink (#ea76cb)
+
+            status_paid: rgba(0x40a02bff),   // Latte Green (#40a02b)
+            status_unpaid: rgba(0xd20f39ff), // Latte Red (#d20f39)
         }
     }
 }
