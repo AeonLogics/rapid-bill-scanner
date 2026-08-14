@@ -1,5 +1,4 @@
 use crate::core::lasersink::LaserReceiver;
-use crate::core::memory_manager::MemoryManager;
 use std::sync::mpsc::{Receiver, RecvTimeoutError};
 use std::time::Duration;
 
@@ -22,9 +21,8 @@ impl ExtractorState {
     }
 }
 
-pub fn start_worker_loop(receiver: LaserReceiver, memory_manager: MemoryManager) {
+pub fn start_worker_loop(receiver: LaserReceiver) {
     let mut state = ExtractorState::default();
-    let memory_manager = MemoryManager::init();
 
     loop {
         match receiver.recv_timeout(Duration::from_millis(30)) {
@@ -32,13 +30,6 @@ pub fn start_worker_loop(receiver: LaserReceiver, memory_manager: MemoryManager)
                 if ch == '\n' || ch == '\r' {
                     if !state.is_empty() {
                         let barcode = state.collected_data.clone();
-
-                        // --------------------------------------------------
-                        // PIPELINE NEXT STEPS:
-                        // 1. Pass `barcode` to BillExtractor trait logic
-                        // 2. Feed processed result to key simulator
-                        // --------------------------------------------------
-                        memory_manager.add_bill(barcode.clone());
 
                         state.clear();
                     }

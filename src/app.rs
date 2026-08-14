@@ -1,4 +1,4 @@
-use crate::theme_manager::ThemeManager;
+use crate::states::ThemeManager;
 use crate::views::{Header, TabView};
 use gpui::{App, Bounds, Entity, Window, WindowBounds, WindowOptions, px, size};
 use gpui::{div, prelude::*};

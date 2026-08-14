@@ -1,20 +1,17 @@
-use crate::theme_manager::ThemeManager;
-use crate::ui::BillView;
-use gpui::{Context, IntoElement, Render, Window, div, prelude::*, px, rgb};
+use crate::states::{BillManager, ThemeManager};
+use gpui::{App, Context, IntoElement, Render, Window, div, prelude::*, px, rgb};
 use gpui_component::StyledExt;
 use gpui_component::button::Button;
-use lasersink::{LaserExtractor, MemoryManager};
+use lasersink::LaserExtractor;
 
 pub struct AutomationView {
     extractor: LaserExtractor,
-    memory: MemoryManager,
 }
 
 impl AutomationView {
     pub fn new() -> AutomationView {
         AutomationView {
             extractor: LaserExtractor::new(),
-            memory: MemoryManager::init(),
         }
     }
 }
@@ -73,8 +70,10 @@ impl Render for AutomationView {
             )
             .child(
                 div()
+                    .m(px(5.0))
+                    .bg(theme.accent)
                     .size_full()
-                    .children(self.memory.get_bills().into_iter().map(BillView::init)),
+                    .child("I am kiddo lol"),
             )
     }
 }

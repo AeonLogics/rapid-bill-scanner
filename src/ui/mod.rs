@@ -5,5 +5,4 @@
 mod bill_view;
 mod helper;
 
-pub use bill_view::BillView;
 pub use helper::*;

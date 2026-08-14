@@ -1,13 +1,16 @@
 mod app;
+pub mod states;
 mod theme_manager;
 mod ui;
 mod views;
+
 use gpui::{App, AppContext};
 use gpui_component::Root;
 
+use crate::states::BillManager;
 use crate::{
     app::RapidBillScanner,
-    theme_manager::ThemeManager,
+    states::ThemeManager,
     views::{Header, TabView},
 };
 
@@ -17,6 +20,7 @@ pub fn main() {
         .run(|cx: &mut App| {
             gpui_component::init(cx);
             ThemeManager::init(cx);
+            BillManager::init_memory(cx);
 
             let ops = RapidBillScanner::window_options(cx);
 

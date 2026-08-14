@@ -1,5 +1,3 @@
-use crate::bills::LaserBill;
-use crate::core::target::KeyAction::Text;
 use windows::Win32::Media::Audio::In;
 use windows::Win32::UI::Input::KeyboardAndMouse::{
     INPUT, INPUT_0, INPUT_KEYBOARD, KEYBDINPUT, KEYEVENTF_KEYUP, SendInput, VIRTUAL_KEY, VK_RETURN,
@@ -29,11 +27,11 @@ impl TargetSoftware {
         }
     }
 
-    fn build_key_press_sequence(&self, bill: LaserBill, contact: String) -> Vec<KeyAction> {
+    fn build_key_press_sequence(&self, reference: String, contact: String) -> Vec<KeyAction> {
         match self {
             TargetSoftware::Nadra => {
                 vec![
-                    KeyAction::Text(bill.reference_number),
+                    KeyAction::Text(reference),
                     KeyAction::Tab,
                     KeyAction::Tab,
                     KeyAction::Tab,
@@ -52,7 +50,7 @@ impl TargetSoftware {
 pub fn execute_sequence(actions: Vec<KeyAction>) {
     for action in actions {
         match action {
-            Text(d) => {}
+            KeyAction::Text(d) => {}
             KeyAction::Tab => send_vk(VK_TAB),
             KeyAction::Enter => send_vk(VK_RETURN),
             KeyAction::Space => send_vk(VK_SPACE),

@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
-use crate::{theme_manager::ThemeManager, views::TabView};
+use crate::states::ThemeManager;
+use crate::views::TabView;
 use gpui::{
     Context, Entity, Image, ImageSource, InteractiveElement, IntoElement, ParentElement, Render,
     StatefulInteractiveElement, Styled, Window, div, img, px,
@@ -109,7 +110,7 @@ impl Render for Header {
                                     .font_bold()
                                     .italic()
                                     .text_color(theme.text_main)
-                                    .child("Rapid Bill Scanner"),
+                                    .child("LaserScanner"),
                             )
                             .child(
                                 div()

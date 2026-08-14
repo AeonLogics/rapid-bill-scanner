@@ -15,6 +15,7 @@ serde = { version = "1.0.229", features = ["derive"] }
 schemars = "1.2.2"
 raw-window-handle = "0.6.2"
 lasersink = { path = "lasersink" }
+chrono = "0.4.45"
 
 [dependencies.windows]
 version = "0.62.2"
