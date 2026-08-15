@@ -1,6 +1,8 @@
 use super::{AutomationView, PreScannedView};
 
-use gpui::{App, AppContext, Context, Entity, IntoElement, ParentElement, Render, Window, div};
+use gpui::{
+    App, AppContext, Context, Entity, IntoElement, ParentElement, Render, Styled, Window, div,
+};
 
 pub struct TabView {
     pub active_tab: usize,
@@ -28,9 +30,9 @@ impl TabView {
 impl Render for TabView {
     fn render(&mut self, _: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
         match self.active_tab {
-            0 => div().child(self.automaton_view.clone()),
-            1 => div().child(self.pre_scanned_view.clone()),
-            _ => div().child("FAAAAAAAAAAAAAAAAAAAAAAAAAAAWh"),
+            0 => div().size_full().child(self.automaton_view.clone()),
+            1 => div().size_full().child(self.pre_scanned_view.clone()),
+            _ => div().size_full().child("FAAAAAAAAAAAAAAAAAAAAAAAAAAAWh"),
         }
     }
 }

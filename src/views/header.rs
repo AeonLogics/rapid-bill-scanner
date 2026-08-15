@@ -1,7 +1,9 @@
 use std::sync::Arc;
 
 use crate::states::ThemeManager;
+use crate::ui::ternary;
 use crate::views::TabView;
+use gpui::prelude::FluentBuilder;
 use gpui::{
     Context, Entity, Image, ImageSource, InteractiveElement, IntoElement, ParentElement, Render,
     StatefulInteractiveElement, Styled, Window, div, img, px,
@@ -31,7 +33,12 @@ impl Header {
     ) -> impl IntoElement {
         let theme = cx.global::<ThemeManager>();
         let is_active = self.tab_view.read(cx).active_tab == target_idx;
-        let tab_view = self.tab_view.clone();
+
+        let transparent = gpui::transparent_black().into();
+
+        let bg_color = ternary(is_active, theme.accent, theme.panel_bg);
+        let text_color = ternary(is_active, theme.text_on_accent, theme.text_muted);
+        let border_color = ternary(is_active, transparent, theme.accent);
 
         div()
             .id(label)
@@ -41,39 +48,33 @@ impl Header {
             .text_sm()
             .font_medium()
             .cursor_pointer()
-            .py_1()
-            .px_3()
-            .gap_1()
-            .bg(if is_active {
-                theme.button_bg
-            } else {
-                gpui::rgba(0x00000000)
-            })
-            .text_color(if is_active {
-                theme.accent
-            } else {
-                theme.text_muted
-            })
+            .p_1()
+            .gap_2()
+            .bg(bg_color)
+            .text_color(text_color)
             .border_1()
-            .border_color(if is_active {
-                theme.accent
-            } else {
-                gpui::rgba(0x00000000)
-            })
-            .hover(|s| {
+            .border_color(border_color)
+            .hover(move |s| {
                 if !is_active {
                     s.bg(theme.button_hover).text_color(theme.text_main)
                 } else {
-                    s
+                    s.bg(theme.accent_hover)
                 }
             })
-            .child(Icon::new(icon).text_xl())
+            .active(move |s| {
+                if !is_active {
+                    s.bg(theme.button_active)
+                } else {
+                    s.bg(theme.accent_active)
+                }
+            })
+            .child(Icon::new(icon).text_xl().text_color(text_color))
             .child(label)
-            .on_mouse_down(gpui::MouseButton::Left, move |_event, _window, cx| {
+            .on_mouse_down(gpui::MouseButton::Left, |_event, _window, cx| {
                 cx.stop_propagation();
             })
-            .on_click(cx.listener(move |_this, _event, _window, cx| {
-                tab_view.update(cx, |tv, cx| {
+            .on_click(cx.listener(move |this, _event, _window, cx| {
+                this.tab_view.update(cx, |tv, cx| {
                     tv.set_tab(target_idx, cx);
                 });
             }))

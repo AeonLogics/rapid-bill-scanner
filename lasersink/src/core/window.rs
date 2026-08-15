@@ -1,10 +1,11 @@
-use crate::core::lasersink::LASER_KEY_TRANSMITTER;
+use crate::core::channel::LASER_KEY_TRANSMITTER;
 use windows::Win32::Foundation::{LPARAM, LRESULT, WPARAM};
 use windows::Win32::Media::Audio::{PlaySoundW, SND_ALIAS, SND_ASYNC};
 use windows::Win32::UI::WindowsAndMessaging::{
     CallNextHookEx, KBDLLHOOKSTRUCT, WM_KEYDOWN, WM_SYSKEYDOWN,
 };
 use windows::core::w;
+
 pub unsafe extern "system" fn low_level_keyboard_proc_macro(
     n_code: i32,
     w_param: WPARAM,

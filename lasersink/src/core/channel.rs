@@ -11,29 +11,23 @@ use windows::Win32::UI::WindowsAndMessaging::{
 pub type LaserReceiver = Receiver<char>;
 type LaserTransmitter = Sender<char>;
 
-// --- Private Internals ---
 static H_HOOK: AtomicIsize = AtomicIsize::new(0);
-static LASER_KEY_TRANSMITTER: Mutex<Option<LaserTransmitter>> = Mutex::new(None);
+pub static LASER_KEY_TRANSMITTER: Mutex<Option<LaserTransmitter>> = Mutex::new(None);
 
 fn is_hook_active() -> bool {
     H_HOOK.load(Ordering::Relaxed) != 0
 }
 
-// --- Public Library Interface ---
-pub struct LaserChannel {
-    is_open: bool,
-}
+pub struct LaserChannel;
 
 impl LaserChannel {
-    /// Creates a dormant handle. No hooks attached yet.
     pub fn init() -> Self {
-        Self { is_open: false }
+        Self
     }
 
-    /// Installs the low-level OS hook and returns the receiver.
-    pub fn open(&mut self) -> Option<LaserReceiver> {
-        if self.is_open || is_hook_active() {
-            return None; // Already running
+    pub fn attach(&mut self) -> Option<LaserReceiver> {
+        if is_hook_active() {
+            return None;
         }
 
         unsafe {
@@ -52,20 +46,16 @@ impl LaserChannel {
         let (tx, rx) = channel();
         *LASER_KEY_TRANSMITTER.lock().unwrap() = Some(tx);
 
-        self.is_open = true;
         Some(rx)
     }
 
-    /// Explicitly closes the channel and unhooks the OS listener.
-    pub fn close(&mut self) {
-        if !self.is_open {
+    pub fn detach(&mut self) {
+        if !is_hook_active() {
             return;
         }
 
-        // Clear transmitter so hook callback stops sending
         *LASER_KEY_TRANSMITTER.lock().unwrap() = None;
 
-        // Unhook from Win32
         let raw = H_HOOK.swap(0, Ordering::Relaxed);
         if raw != 0 {
             unsafe {
@@ -74,18 +64,15 @@ impl LaserChannel {
                 let _ = UnhookWindowsHookEx(handle);
             }
         }
-
-        self.is_open = false;
     }
 
-    pub fn is_active(&self) -> bool {
-        self.is_open && is_hook_active()
+    pub fn status(&self) -> bool {
+        is_hook_active()
     }
 }
 
-// Automatic cleanup! If LaserChannel drops, Windows unhooks safely.
 impl Drop for LaserChannel {
     fn drop(&mut self) {
-        self.close();
+        self.detach();
     }
 }

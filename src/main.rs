@@ -1,6 +1,6 @@
 mod app;
+mod component;
 pub mod states;
-mod theme_manager;
 mod ui;
 mod views;
 
