@@ -36,7 +36,7 @@ pub unsafe extern "system" fn low_level_keyboard_proc_macro(
     CallNextHookEx(None, n_code, w_param, l_param)
 }
 
-pub enum KeyAction {
+enum KeyAction {
     PassToOS,
     Swallow(Option<char>),
 }

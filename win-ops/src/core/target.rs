@@ -1,59 +1,20 @@
-use windows::Win32::Media::Audio::In;
+use primitives::KeyAction;
+use std::mem::size_of;
 use windows::Win32::UI::Input::KeyboardAndMouse::{
-    INPUT, INPUT_0, INPUT_KEYBOARD, KEYBDINPUT, KEYEVENTF_KEYUP, SendInput, VIRTUAL_KEY, VK_RETURN,
-    VK_SPACE, VK_TAB,
+    INPUT, INPUT_0, INPUT_KEYBOARD, KEYBDINPUT, KEYEVENTF_KEYUP, KEYEVENTF_UNICODE, SendInput,
+    VIRTUAL_KEY, VK_RETURN, VK_SPACE, VK_TAB,
 };
 
-pub enum KeyAction {
-    Text(String),
-    Tab,
-    Enter,
-    Space,
+pub trait Executable {
+    fn execute_self(self);
 }
-
-#[derive(Copy, Clone, PartialEq, Debug, Default)]
-pub enum TargetSoftware {
-    #[default]
-    Nadra,
-}
-
-impl TargetSoftware {
-    pub const fn init() -> TargetSoftware {
-        TargetSoftware::Nadra
-    }
-    fn label(&self) -> &'static str {
+impl Executable for KeyAction {
+    fn execute_self(self) {
         match self {
-            TargetSoftware::Nadra => "Nadra",
-        }
-    }
-
-    fn build_key_press_sequence(&self, reference: String, contact: String) -> Vec<KeyAction> {
-        match self {
-            TargetSoftware::Nadra => {
-                vec![
-                    KeyAction::Text(reference),
-                    KeyAction::Tab,
-                    KeyAction::Tab,
-                    KeyAction::Tab,
-                    KeyAction::Text(contact),
-                    KeyAction::Tab,
-                    KeyAction::Space,
-                    KeyAction::Tab,
-                    KeyAction::Tab,
-                    KeyAction::Space,
-                ]
-            }
-        }
-    }
-}
-
-pub fn execute_sequence(actions: Vec<KeyAction>) {
-    for action in actions {
-        match action {
-            KeyAction::Text(d) => {}
+            KeyAction::Text(d) => send_ch(d),
             KeyAction::Tab => send_vk(VK_TAB),
-            KeyAction::Enter => send_vk(VK_RETURN),
             KeyAction::Space => send_vk(VK_SPACE),
+            KeyAction::Enter => send_vk(VK_RETURN),
         }
     }
 }
@@ -95,6 +56,7 @@ fn send_ch(text: String) {
                     ki: KEYBDINPUT {
                         wVk: VIRTUAL_KEY(0),
                         wScan: ch,
+                        dwFlags: KEYEVENTF_UNICODE, // 2. Explicitly tell Windows this is a unicode char
                         ..Default::default()
                     },
                 },
@@ -105,7 +67,7 @@ fn send_ch(text: String) {
                     ki: KEYBDINPUT {
                         wVk: VIRTUAL_KEY(0),
                         wScan: ch,
-                        dwFlags: KEYEVENTF_KEYUP,
+                        dwFlags: KEYEVENTF_UNICODE | KEYEVENTF_KEYUP,
                         ..Default::default()
                     },
                 },

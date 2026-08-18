@@ -5,4 +5,5 @@ mod window;
 
 pub use channel::LaserChannel;
 pub use stroke_collector::StrokeCollector;
-pub use window::play_bonk_error;
+pub use target::Executable;
+pub use window::{play_bonk_error, play_notification};
