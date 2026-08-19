@@ -1,6 +1,5 @@
-mod automation;
 mod bill_manager;
-mod theme;
+mod deck_control;
 
-pub use bill_manager::{BillManager, LaserBill};
-pub use theme::ThemeManager;
+pub use bill_manager::BillManager;
+pub use deck_control::Deck;

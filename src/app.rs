@@ -1,16 +1,17 @@
-use crate::states::ThemeManager;
-use crate::views::{Header, TabView};
-use gpui::{App, Bounds, Entity, Window, WindowBounds, WindowOptions, px, size};
+use crate::states::Deck;
+use crate::ui::{ControlRoom, DeckContainer};
+use gpui::{
+    App, Bounds, SharedString, TitlebarOptions, Window, WindowBounds, WindowOptions, px, size,
+};
 use gpui::{div, prelude::*};
+use primitives::ThemeController;
 
-pub struct RapidBillScanner {
-    pub header: Entity<Header>,
-    pub tab_view: Entity<TabView>,
-}
+pub struct RapidBillScanner {}
 
 impl RapidBillScanner {
     pub fn bounds(cx: &mut App) -> WindowBounds {
-        let bounds = Bounds::centered(None, size(px(1280.), px(720.0)), cx);
+        let bounds = Bounds::centered(None, size(px(1280.), px(800.0)), cx);
+        let bounds = Bounds::centered(None, size(px(1280.), px(800.0)), cx);
         WindowBounds::Windowed(bounds)
     }
 
@@ -26,21 +27,16 @@ impl RapidBillScanner {
 
 impl Render for RapidBillScanner {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = cx.global::<ThemeManager>();
+        let theme = cx.global::<ThemeController>();
+        let deck = cx.global::<Deck>();
 
         div()
             .size_full()
-            .flex()
-            .flex_col()
             .bg(theme.bg_app)
-            .text_color(theme.text_main)
-            .child(self.header.clone())
-            .child(
-                div()
-                    .flex_1()
-                    .w_full()
-                    .child(self.tab_view.clone())
-                    .size_full(),
-            )
+            .flex()
+            .flex_row()
+            .overflow_hidden()
+            .child(ControlRoom)
+            .child(DeckContainer)
     }
 }

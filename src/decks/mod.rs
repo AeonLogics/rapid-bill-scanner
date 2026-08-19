@@ -1,10 +1,5 @@
-mod automation;
-mod header;
 mod pre_scanned;
-mod tab;
+mod telemetry;
 
-pub(super) use automation::AutomationView;
-pub(super) use pre_scanned::PreScannedView;
-
-pub use header::Header;
-pub use tab::TabView;
+pub use pre_scanned::PreScannedView;
+pub use telemetry::TelemetryDeck;

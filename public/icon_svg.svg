@@ -1,0 +1,19 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Rounded Square Background -->
+  <rect width="512" height="512" rx="140" fill="#6366F1"/>
+  
+  <!-- Top-Left Bracket -->
+  <path d="M142 206V172C142 155.431 155.431 142 172 142H206" stroke="white" stroke-width="28" stroke-linecap="round"/>
+  
+  <!-- Top-Right Bracket -->
+  <path d="M370 206V172C370 155.431 356.569 142 340 142H306" stroke="white" stroke-width="28" stroke-linecap="round"/>
+  
+  <!-- Center Bar -->
+  <path d="M190 256H322" stroke="white" stroke-width="28" stroke-linecap="round"/>
+  
+  <!-- Bottom-Left Bracket -->
+  <path d="M142 306V340C142 356.569 155.431 370 172 370H206" stroke="white" stroke-width="28" stroke-linecap="round"/>
+  
+  <!-- Bottom-Right Bracket -->
+  <path d="M370 306V340C370 356.569 356.569 370 340 370H306" stroke="white" stroke-width="28" stroke-linecap="round"/>
+</svg>

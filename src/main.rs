@@ -1,40 +1,33 @@
 mod app;
 mod component;
+mod decks;
 pub mod states;
 mod ui;
-mod views;
 
+use crate::app::RapidBillScanner;
+use crate::states::{BillManager, Deck};
+// use db_actions::init_db;
 use gpui::{App, AppContext};
-use gpui_component::Root;
-
-use crate::states::BillManager;
-use crate::{
-    app::RapidBillScanner,
-    states::ThemeManager,
-    views::{Header, TabView},
-};
+use primitives::{TargetSoftware, ThemeController};
+use win_ops::LaserChannel;
 
 pub fn main() {
+    // init_db();
     gpui_platform::application()
         .with_assets(gpui_component_assets::Assets)
         .run(|cx: &mut App| {
             gpui_component::init(cx);
-            ThemeManager::init(cx);
-            BillManager::init_memory(cx);
+            ThemeController::init(cx);
+            BillManager::init(cx);
+            LaserChannel::init(cx);
+            TargetSoftware::init(cx);
+            Deck::init(cx);
 
             let ops = RapidBillScanner::window_options(cx);
 
             cx.spawn(async move |cx| {
-                cx.open_window(ops, |window, cx| {
-                    let tab_view = cx.new(|cx| TabView::init(cx));
-                    let header_view = cx.new(|cx| Header::new(tab_view.clone(), cx));
-                    let app_view = cx.new(|_| RapidBillScanner {
-                        header: header_view,
-                        tab_view,
-                    });
-                    cx.new(|cx| Root::new(app_view, window, cx))
-                })
-                .expect("Failed to open window");
+                cx.open_window(ops, |_window, cx| cx.new(|_| RapidBillScanner {}))
+                    .expect("Failed to open window");
             })
             .detach();
         });

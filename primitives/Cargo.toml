@@ -1,5 +1,5 @@
 [package]
-name = "rapid-bill-scan"
+name = "primitives"
 version = "0.1.0"
 edition = "2024"
 
@@ -9,19 +9,4 @@ gpui_platform = { git = "https://github.com/zed-industries/zed", features = ["fo
 gpui-component = { git = "https://github.com/longbridge/gpui-component" }
 gpui-component-assets = { git = "https://github.com/longbridge/gpui-component" }
 chrono = "0.4.45"
-async-channel = "2.5.0"
-primitives = { path = "primitives" }
-tokio = { version = "1", features = ["rt", "macros"] }
-win-ops = { path = "win-ops" }
-db_actions = { path = "db_actions" }
 
-
-[build-dependencies]
-embed-resource = "3.0.11"
-
-[workspace]
-members = [
-    "db_actions",
-    "win-ops",
-    "primitives",
-]
