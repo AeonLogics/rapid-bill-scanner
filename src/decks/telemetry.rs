@@ -1,19 +1,25 @@
 use crate::component::DropDown;
-use crate::ui::ternary;
+use crate::ui::{ProceduralScanner, ternary};
 use gpui::prelude::*;
-use gpui::{App, Global, IntoElement, RenderOnce, Window, div, px};
+use gpui::{App, Context, Entity, IntoElement, Render, Window, div, px};
 use gpui_component::{Icon, IconName, StyledExt, h_flex, v_flex};
 use primitives::{TargetSoftware, ThemeController};
 use win_ops::LaserChannel;
 
-#[derive(Default, IntoElement)]
 pub struct TelemetryDeck;
 
-impl RenderOnce for TelemetryDeck {
-    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl TelemetryDeck {
+    pub fn build(cx: &mut App) -> Entity<Self> {
+        cx.new(|_| Self)
+    }
+}
+
+impl Render for TelemetryDeck {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let theme = cx.global::<ThemeController>();
         let channel = cx.global::<LaserChannel>();
         let is_running = channel.status();
+        let last_bill = channel.last_bill();
 
         v_flex()
             .size_full()
@@ -21,69 +27,7 @@ impl RenderOnce for TelemetryDeck {
             .p_4()
             .rounded_tl_2xl()
             .bg(theme.bg_surface)
-            .child(
-                v_flex()
-                    .w_full()
-                    .p_5()
-                    .bg(theme.bg_panel)
-                    .border_1()
-                    .border_color(theme.border_subtle)
-                    .rounded_xl()
-                    .gap_3()
-                    .child(
-                        h_flex()
-                            .justify_between()
-                            .items_center()
-                            .child(
-                                h_flex()
-                                    .items_center()
-                                    .gap_2()
-                                    .child(
-                                        // Dynamic pulsing status dot
-                                        div().size_2p5().rounded_full().bg(ternary(
-                                            is_running,
-                                            theme.success,
-                                            theme.text_muted,
-                                        )),
-                                    )
-                                    .child(
-                                        div()
-                                            .text_xs()
-                                            .font_semibold()
-                                            .text_color(theme.text_main)
-                                            .child(ternary(
-                                                is_running,
-                                                "ENGINE LIVE",
-                                                "ENGINE IDLE",
-                                            )),
-                                    ),
-                            )
-                            .child(
-                                div()
-                                    .text_xs()
-                                    .text_color(theme.text_muted)
-                                    .child("CHANNEL 01 — ACTIVE"),
-                            ),
-                    )
-                    // Visualizer track bar / animation placeholder
-                    .child(
-                        h_flex()
-                            .w_full()
-                            .h(px(40.0))
-                            .bg(theme.bg_sunken)
-                            .border_1()
-                            .border_color(theme.border_subtle)
-                            .rounded_lg()
-                            .items_center()
-                            .justify_center()
-                            .child(div().text_xs().text_color(theme.text_muted).child(ternary(
-                                is_running,
-                                "Scanning optical stream...",
-                                "Standby mode",
-                            ))),
-                    ),
-            )
-            // 2. Middle Section: Target & Configuration Controls
+            .child(ProceduralScanner::new(is_running, last_bill))
             .child(
                 v_flex()
                     .w_full()
@@ -100,7 +44,6 @@ impl RenderOnce for TelemetryDeck {
                             .text_color(theme.text_muted)
                             .child("TARGET CONFIGURATION"),
                     )
-                    // Dropdown & parameter row
                     .child(
                         h_flex()
                             .w_full()
@@ -112,7 +55,6 @@ impl RenderOnce for TelemetryDeck {
                                     .text_color(theme.text_main)
                                     .child("Software Target"),
                             )
-                            // Target Dropdown placeholder
                             .child(
                                 div()
                                     .px_3()
@@ -127,7 +69,7 @@ impl RenderOnce for TelemetryDeck {
                             ),
                     ),
             )
-            // 3. Bottom Section: Main Action Trigger
+            // Bottom Section: Main Action Trigger
             .child(
                 v_flex()
                     .w_full()
@@ -160,7 +102,12 @@ impl RenderOnce for TelemetryDeck {
                                 IconName::Play,
                             )))
                             .child(ternary(!is_running, "Activate Engine", "Deactivate Engine"))
-                            .on_click(|_event, _window, cx| {}),
+                            .on_click(|_event, _window, cx| {
+                                cx.update_global::<LaserChannel, _>(|channel, cx| {
+                                    channel.toggle(TargetSoftware::Nadra);
+                                    // cx.notify();
+                                });
+                            }),
                     ),
             )
     }

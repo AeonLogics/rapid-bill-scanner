@@ -5,8 +5,9 @@ pub mod states;
 mod ui;
 
 use crate::app::RapidBillScanner;
-use crate::states::{BillManager, Deck};
+use crate::states::{BillManager, GlobalDeck};
 // use db_actions::init_db;
+use crate::ui::ControlRoom;
 use gpui::{App, AppContext};
 use primitives::{TargetSoftware, ThemeController};
 use win_ops::LaserChannel;
@@ -21,13 +22,15 @@ pub fn main() {
             BillManager::init(cx);
             LaserChannel::init(cx);
             TargetSoftware::init(cx);
-            Deck::init(cx);
+            GlobalDeck::init(cx);
 
             let ops = RapidBillScanner::window_options(cx);
 
             cx.spawn(async move |cx| {
-                cx.open_window(ops, |_window, cx| cx.new(|_| RapidBillScanner {}))
-                    .expect("Failed to open window");
+                cx.open_window(ops, |_win, cx| {
+                    let control_room = ControlRoom::build(cx);
+                    cx.new(|_cx| RapidBillScanner { control_room })
+                })
             })
             .detach();
         });

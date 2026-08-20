@@ -1,12 +1,11 @@
-use crate::states::Deck;
 use crate::ui::{ControlRoom, DeckContainer};
-use gpui::{
-    App, Bounds, SharedString, TitlebarOptions, Window, WindowBounds, WindowOptions, px, size,
-};
+use gpui::{App, Bounds, Entity, Window, WindowBounds, WindowOptions, px, size};
 use gpui::{div, prelude::*};
 use primitives::ThemeController;
 
-pub struct RapidBillScanner {}
+pub struct RapidBillScanner {
+    pub(crate) control_room: Entity<ControlRoom>,
+}
 
 impl RapidBillScanner {
     pub fn bounds(cx: &mut App) -> WindowBounds {
@@ -28,7 +27,6 @@ impl RapidBillScanner {
 impl Render for RapidBillScanner {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let theme = cx.global::<ThemeController>();
-        let deck = cx.global::<Deck>();
 
         div()
             .size_full()
@@ -36,7 +34,7 @@ impl Render for RapidBillScanner {
             .flex()
             .flex_row()
             .overflow_hidden()
-            .child(ControlRoom)
+            .child(self.control_room.clone())
             .child(DeckContainer)
     }
 }

@@ -1,3 +1,4 @@
+use crate::KeyAction;
 use crate::core::target_software::TargetSoftware;
 use chrono::{Local, NaiveDate};
 
@@ -23,16 +24,6 @@ impl LaserBill {
     pub fn with_index(mut self, index: usize) -> Self {
         self.index = Some(index);
         self
-    }
-
-    pub fn execute(self, target: TargetSoftware, contact: &str) -> bool {
-        target.execute(&self.reference, contact);
-        true
-    }
-
-    pub fn execute_empty(target: TargetSoftware, contact: &str) -> bool {
-        target.execute("", contact);
-        true
     }
 }
 

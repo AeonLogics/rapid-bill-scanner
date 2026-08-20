@@ -13,7 +13,7 @@ impl TargetSoftware {
         let target = TargetSoftware::default();
         cx.set_global(target);
     }
-    pub fn execute(&self, reference: &str, contact: &str) -> Vec<KeyAction> {
+    pub fn build_execute(&self, reference: &str, contact: &str) -> Vec<KeyAction> {
         match self {
             TargetSoftware::Nadra => vec![
                 KeyAction::Text(reference.to_string()),

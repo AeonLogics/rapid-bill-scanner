@@ -1,7 +1,7 @@
 use chrono::{Local, NaiveDate};
 use gpui::{App, Global, IntoElement};
 use primitives::{LaserBill, TargetSoftware};
-use win_ops::play_notification;
+use win_ops::{Executable, play_notification};
 
 #[derive(Clone, Default, IntoElement)]
 pub struct BillManager {
@@ -56,7 +56,9 @@ impl BillManager {
 
     pub fn execute_active(&mut self, target: TargetSoftware, contact: &str) -> bool {
         if let Some(bill) = self.get_active_bill() {
-            target.execute(&bill.reference, contact);
+            let actions = target.build_execute(&bill.reference, contact);
+            actions.into_iter().for_each(|action| action.execute_self());
+
             self.mark_active_paid_and_advance();
             true
         } else {

@@ -1,5 +1,5 @@
 use crate::core::Executable;
-use crate::core::window::low_level_keyboard_proc_macro;
+use crate::core::window::{IS_PASSTHROUGH, low_level_keyboard_proc_macro};
 use crate::{StrokeCollector, play_notification};
 use gpui::{App, Global};
 use primitives::{KeyAction, LaserBill, TargetSoftware};
@@ -24,9 +24,17 @@ fn is_hook_active() -> bool {
     H_HOOK.load(Ordering::Relaxed) != 0
 }
 
+/// Runs a block of key actions while disabling the hook's swallowing behavior.
+fn send_passthrough<F: FnOnce()>(action: F) {
+    IS_PASSTHROUGH.store(true, Ordering::Relaxed);
+    action();
+    IS_PASSTHROUGH.store(false, Ordering::Relaxed);
+}
+
 pub struct LaserChannel {
     is_running: Arc<AtomicBool>,
     worker_handle: Mutex<Option<JoinHandle<()>>>,
+    last_bill: Arc<Mutex<Option<LaserBill>>>,
 }
 
 impl Global for LaserChannel {}
@@ -36,6 +44,7 @@ impl LaserChannel {
         cx.set_global(Self {
             is_running: Arc::new(AtomicBool::new(false)),
             worker_handle: Mutex::new(None),
+            last_bill: Arc::new(Mutex::new(None)),
         });
     }
 
@@ -80,62 +89,44 @@ impl LaserChannel {
         }
     }
 
-    /// Associated function—no `&self` needed! Safe to invoke inside thread::spawn closures.
-    fn execute_with_hook_passthrough<F>(
-        running_flag: &AtomicBool,
-        action: F,
-    ) -> Option<LaserReceiver>
-    where
-        F: FnOnce(),
-    {
-        Self::detach_hook();
-
-        action();
-
-        if running_flag.load(Ordering::Relaxed) {
-            return Self::attach_hook();
-        }
-        None
-    }
-
-    pub fn toggle(&self, target_software: TargetSoftware) {
+    pub fn toggle(&mut self, target_software: TargetSoftware) {
         if self.status() {
             self.stop();
             return;
         }
 
-        if let Some(mut rx) = Self::attach_hook() {
+        if let Some(rx) = Self::attach_hook() {
             self.is_running.store(true, Ordering::Relaxed);
             let running_flag = Arc::clone(&self.is_running);
+            let last_bill_store = Arc::clone(&self.last_bill);
 
             let handle = thread::spawn(move || {
                 let mut collector = StrokeCollector::default();
 
                 while running_flag.load(Ordering::Relaxed) {
-                    // Bumping to 80ms prevents timeout splits during fast typing or slow HID scanners
                     match rx.recv_timeout(Duration::from_millis(80)) {
                         Ok('\n' | '\r') => {
                             if !collector.is_empty() {
                                 let raw_barcode = std::mem::take(&mut collector.collected_data);
 
                                 if let Some(bill) = LaserBill::parse(raw_barcode.clone()) {
-                                    if let Some(new_rx) =
-                                        Self::execute_with_hook_passthrough(&running_flag, || {
-                                            bill.execute(target_software, "03000000000");
-                                        })
-                                    {
-                                        rx = new_rx;
+                                    // Save scanned payload safely across thread
+                                    if let Ok(mut lock) = last_bill_store.lock() {
+                                        *lock = Some(bill.clone());
                                     }
+
+                                    send_passthrough(|| {
+                                        target_software
+                                            .build_execute(&bill.reference, "03007277148")
+                                            .into_iter()
+                                            .for_each(|e| e.execute_self());
+                                    });
                                 } else {
                                     play_notification();
-                                    if let Some(new_rx) =
-                                        Self::execute_with_hook_passthrough(&running_flag, || {
-                                            KeyAction::Text(raw_barcode).execute_self();
-                                            KeyAction::Enter.execute_self();
-                                        })
-                                    {
-                                        rx = new_rx;
-                                    }
+                                    send_passthrough(|| {
+                                        KeyAction::Text(raw_barcode).execute_self();
+                                        KeyAction::Enter.execute_self();
+                                    });
                                 }
                             }
                             collector.clear();
@@ -146,13 +137,9 @@ impl LaserChannel {
                         Err(RecvTimeoutError::Timeout) => {
                             if !collector.is_empty() {
                                 let typed_data = std::mem::take(&mut collector.collected_data);
-                                if let Some(new_rx) =
-                                    Self::execute_with_hook_passthrough(&running_flag, || {
-                                        KeyAction::Text(typed_data).execute_self();
-                                    })
-                                {
-                                    rx = new_rx;
-                                }
+                                send_passthrough(|| {
+                                    KeyAction::Text(typed_data).execute_self();
+                                });
                             }
                             collector.clear();
                         }
@@ -172,7 +159,6 @@ impl LaserChannel {
         Self::detach_hook();
 
         if let Some(handle) = self.worker_handle.lock().unwrap().take() {
-            // Guard against self-joining if called within thread context
             if thread::current().id() != handle.thread().id() {
                 let _ = handle.join();
             }
@@ -181,6 +167,10 @@ impl LaserChannel {
 
     pub fn status(&self) -> bool {
         is_hook_active()
+    }
+
+    pub fn last_bill(&self) -> Option<LaserBill> {
+        self.last_bill.lock().ok()?.clone()
     }
 }
 

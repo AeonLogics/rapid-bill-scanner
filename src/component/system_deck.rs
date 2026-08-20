@@ -31,5 +31,6 @@ impl RenderOnce for SystemDeck {
                     .child("DECK CONTROL"),
             )
             .child(DeckButton(Deck::Telemetry))
+            .child(DeckButton(Deck::Archive))
     }
 }

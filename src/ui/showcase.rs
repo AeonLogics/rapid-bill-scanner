@@ -1,401 +1,395 @@
-use gpui::prelude::FluentBuilder;
-use gpui::{App, IntoElement, ParentElement, RenderOnce, Styled, Window, div, px};
+use crate::ui::ternary;
+use gpui::prelude::*;
+use gpui::{App, IntoElement, RenderOnce, Window, div, hsla, px};
 use gpui_component::{Icon, IconName, StyledExt, h_flex, v_flex};
-use primitives::ThemeController;
-use std::time::{SystemTime, UNIX_EPOCH};
+use primitives::{LaserBill, ThemeController};
+use std::time::Instant;
 
-#[derive(IntoElement, Clone)]
-pub struct ScanMonitor {
-    pub total_scanned: usize,
-    pub total_amount: u32,
-    pub is_active: bool,
+#[derive(Clone)]
+struct PipelineStep {
+    icon: IconName,
+    label: &'static str,
+    x_pct: f32,
+    y_pos: f32,
 }
 
-impl ScanMonitor {
-    pub fn new(total_scanned: usize, total_amount: u32, is_active: bool) -> Self {
+fn get_animation_progress() -> f32 {
+    static START_TIME: std::sync::OnceLock<Instant> = std::sync::OnceLock::new();
+    let start = START_TIME.get_or_init(Instant::now);
+    start.elapsed().as_secs_f32()
+}
+
+#[derive(IntoElement)]
+pub struct ProceduralScanner {
+    is_running: bool,
+    last_bill: Option<LaserBill>,
+}
+
+impl ProceduralScanner {
+    pub fn new(is_running: bool, laser_bill: Option<LaserBill>) -> Self {
         Self {
-            total_scanned,
-            total_amount,
-            is_active,
+            is_running,
+            last_bill: laser_bill,
         }
     }
 }
 
-impl RenderOnce for ScanMonitor {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl RenderOnce for ProceduralScanner {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         let theme = cx.global::<ThemeController>();
 
-        let elapsed_ms = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .map(|d| d.as_millis())
-            .unwrap_or(0);
+        if self.is_running {
+            window.on_next_frame(|_window, cx| {
+                cx.refresh_windows();
+            });
+        }
 
-        // 1. Horizontal Laser Position
-        let cycle = (elapsed_ms % 1600) as f32 / 1600.0;
-        let pos_pct = if cycle < 0.5 {
-            cycle * 2.0 * 88.0 + 6.0
-        } else {
-            (1.0 - cycle) * 2.0 * 88.0 + 6.0
-        };
+        let time = get_animation_progress();
+        let active = self.is_running;
 
-        // 2. Vertical Grid Pulse Position
-        let vert_cycle = (elapsed_ms % 2400) as f32 / 2400.0;
-        let vert_pos_pct = vert_cycle * 90.0 + 5.0;
+        let accent_color = theme.accent;
+        let trace_color = theme.border_subtle;
 
-        // 3. Telemetry Hex Generators
-        let hex_val1 = (elapsed_ms / 120) % 0xFFFF;
-        let hex_val2 = (elapsed_ms / 80) % 0xFF;
+        let pipeline_steps = vec![
+            PipelineStep {
+                icon: IconName::Network,
+                label: "DETECT STREAM",
+                x_pct: 0.08,
+                y_pos: 35.0,
+            },
+            PipelineStep {
+                icon: IconName::Cpu,
+                label: "DECODE BILL",
+                x_pct: 0.36,
+                y_pos: 155.0,
+            },
+            PipelineStep {
+                icon: IconName::MemoryStick,
+                label: "EXTRACT BILL TYPE",
+                x_pct: 0.64,
+                y_pos: 35.0,
+            },
+            PipelineStep {
+                icon: IconName::ExternalLink,
+                label: "SIMULATE KEYPRESS",
+                x_pct: 0.92,
+                y_pos: 155.0,
+            },
+        ];
+
+        let canvas_steps = pipeline_steps.clone();
 
         v_flex()
-            .flex_1()
-            .h_full()
             .w_full()
-            .p_6()
-            .gap_6()
-            .rounded_xl()
+            .flex_1()
+            .min_h(px(360.0))
+            .bg(theme.bg_sunken)
             .border_1()
-            .border_color(theme.border)
-            .bg(theme.bg_panel)
+            .border_color(theme.border_subtle)
+            .rounded_xl()
+            .relative()
+            .overflow_hidden()
             .justify_between()
-            // --- Top HUD Header ---
+            .p_5()
+            .child(
+                h_flex().w_full().justify_between().items_center().child(
+                    h_flex()
+                        .items_center()
+                        .gap_2p5()
+                        .child(div().size(px(8.0)).rounded_full().bg(ternary(
+                            active,
+                            theme.accent,
+                            theme.text_muted,
+                        )))
+                        .child(
+                            div()
+                                .text_xs()
+                                .font_semibold()
+                                .text_color(ternary(active, theme.accent, theme.text_muted))
+                                .child(ternary(active, "Laser streaming... ", "Laser idle")),
+                        ),
+                ),
+            )
+            // --- HUD TELEMETRY BAR ---
             .child(
                 h_flex()
                     .w_full()
                     .justify_between()
                     .items_center()
+                    .px_3p5()
+                    .py_2()
+                    .my_1()
+                    .bg(theme.bg_surface)
+                    .border_1()
+                    .border_color(theme.border_subtle)
+                    .rounded_lg()
+                    .shadow_sm()
                     .child(
                         h_flex()
+                            .gap_6()
                             .items_center()
-                            .gap_2()
-                            .child(Icon::new(IconName::Bot))
+                            // Reference Number
                             .child(
-                                div()
-                                    .text_sm()
-                                    .font_bold()
-                                    .text_color(theme.text_main)
-                                    .child("LaserScanner Barcode HUD"),
+                                v_flex()
+                                    .gap_0p5()
+                                    .child(
+                                        div()
+                                            .text_xs()
+                                            .font_semibold()
+                                            .text_color(theme.text_muted)
+                                            .child("LAST REF NO"),
+                                    )
+                                    .child(
+                                        div()
+                                            .text_xs()
+                                            .font_family("Consolas")
+                                            .font_bold()
+                                            .text_color(theme.text_main)
+                                            .child(match &self.last_bill {
+                                                Some(b) => b.reference.clone(),
+                                                None => "--".to_string(),
+                                            }),
+                                    ),
+                            )
+                            .child(div().w(px(1.0)).h(px(18.0)).bg(theme.border_subtle))
+                            // Amount
+                            .child(
+                                v_flex()
+                                    .gap_0p5()
+                                    .child(
+                                        div()
+                                            .text_xs()
+                                            .font_semibold()
+                                            .text_color(theme.text_muted)
+                                            .child("AMOUNT"),
+                                    )
+                                    .child(
+                                        div()
+                                            .text_xs()
+                                            .font_family("Consolas")
+                                            .font_bold()
+                                            .text_color(theme.accent)
+                                            .child(match &self.last_bill {
+                                                Some(b) => format!("RS. {}", b.amount),
+                                                None => "--".to_string(),
+                                            }),
+                                    ),
+                            )
+                            .child(div().w(px(1.0)).h(px(18.0)).bg(theme.border_subtle))
+                            // Bill Type (Replaces Due Date)
+                            .child(
+                                v_flex()
+                                    .gap_0p5()
+                                    .child(
+                                        div()
+                                            .text_xs()
+                                            .font_semibold()
+                                            .text_color(theme.text_muted)
+                                            .child("BILL TYPE"),
+                                    )
+                                    .child(
+                                        div()
+                                            .text_xs()
+                                            .font_family("Consolas")
+                                            .font_bold()
+                                            .text_color(theme.text_main)
+                                            .child(match &self.last_bill {
+                                                Some(b) => b.bill_type.to_string(),
+                                                None => "--".to_string(),
+                                            }),
+                                    ),
                             ),
                     )
-                    .child(
-                        h_flex()
-                            .items_center()
-                            .gap_2()
-                            .px_3()
-                            .py_1()
+                    // Status Badge (Fixed: has_late_fee)
+                    .child(match &self.last_bill {
+                        Some(b) if b.has_late_fee => div()
+                            .px_2p5()
+                            .py_0p5()
                             .rounded_full()
-                            .bg(if self.is_active {
-                                theme.accent
-                            } else {
-                                theme.bg_panel
-                            })
-                            .child(div().size_2().rounded_full().bg(if self.is_active {
-                                theme.accent
-                            } else {
-                                theme.text_muted
-                            }))
-                            .child(
-                                div()
-                                    .text_xs()
-                                    .font_bold()
-                                    .text_color(if self.is_active {
-                                        theme.accent
-                                    } else {
-                                        theme.text_muted
-                                    })
-                                    .child(if self.is_active {
-                                        "LASER ARMED"
-                                    } else {
-                                        "STANDBY"
-                                    }),
-                            ),
-                    ),
+                            .border_1()
+                            .border_color(hsla(10.0 / 360.0, 0.80, 0.60, 0.4))
+                            .bg(hsla(10.0 / 360.0, 0.80, 0.60, 0.12))
+                            .text_xs()
+                            .font_bold()
+                            .text_color(hsla(10.0 / 360.0, 0.90, 0.65, 1.0))
+                            .child("LATE FEE APPLIED"),
+                        Some(_) => div()
+                            .px_2p5()
+                            .py_0p5()
+                            .rounded_full()
+                            .border_1()
+                            .border_color(theme.border_subtle)
+                            .bg(theme.bg_sunken)
+                            .text_xs()
+                            .font_bold()
+                            .text_color(theme.text_muted)
+                            .child("STANDARD BILL"),
+                        None => div()
+                            .text_xs()
+                            .font_family("Consolas")
+                            .text_color(theme.text_muted)
+                            .child("NO PAYLOAD"),
+                    }),
             )
-            // --- Center Animated Stage ---
             .child(
                 div()
                     .relative()
                     .w_full()
-                    .flex_1()
-                    .rounded_lg()
-                    .bg(theme.bg_app)
-                    .border_1()
-                    .border_color(theme.border_color)
-                    .overflow_hidden()
-                    .flex()
-                    .items_center()
-                    .justify_center()
-                    .child(
+                    .h(px(210.0))
+                    .my_1()
+                    .child(gpui::canvas(
+                        move |_bounds, _cx, _fa| {},
+                        move |bounds, _state, window, _cx| {
+                            let width: f32 = bounds.size.width.into();
+
+                            let waypoints: Vec<(f32, f32)> = canvas_steps
+                                .iter()
+                                .map(|step| (width * step.x_pct, step.y_pos))
+                                .collect();
+
+                            let get_spline_pt =
+                                |p0: (f32, f32), p1: (f32, f32), t: f32| -> (f32, f32) {
+                                    let mid_x = p0.0 + (p1.0 - p0.0) * t;
+                                    let smooth_t = (1.0 - (t * std::f32::consts::PI).cos()) * 0.5;
+                                    let mid_y = p0.1 + (p1.1 - p0.1) * smooth_t;
+                                    (mid_x, mid_y)
+                                };
+
+                            let samples = 260;
+                            for i in 0..waypoints.len() - 1 {
+                                let p0 = waypoints[i];
+                                let p1 = waypoints[i + 1];
+
+                                for s in 0..samples {
+                                    let t = (s as f32) / (samples as f32);
+                                    let (x, y) = get_spline_pt(p0, p1, t);
+
+                                    let dot_size = 2.5;
+                                    window.paint_quad(
+                                        gpui::fill(
+                                            gpui::Bounds::new(
+                                                bounds.origin
+                                                    + gpui::point(
+                                                        px(x - dot_size / 2.0),
+                                                        px(y - dot_size / 2.0),
+                                                    ),
+                                                gpui::size(px(dot_size), px(dot_size)),
+                                            ),
+                                            trace_color,
+                                        )
+                                        .corner_radii(px(dot_size / 2.0)),
+                                    );
+                                }
+                            }
+
+                            if !active {
+                                return;
+                            }
+
+                            let total_segs = (waypoints.len() - 1) as f32;
+                            let speed = 2.20;
+                            let loop_prog = (time * speed) % total_segs;
+                            let seg_idx = loop_prog as usize;
+                            let seg_frac = loop_prog.fract();
+
+                            let (ball_x, ball_y) =
+                                get_spline_pt(waypoints[seg_idx], waypoints[seg_idx + 1], seg_frac);
+
+                            let trail_pts = 28;
+                            for t in 1..=trail_pts {
+                                let offset = (t as f32) * 0.012;
+                                let t_prog = (loop_prog - offset).max(0.0);
+                                let t_idx = (t_prog as usize).min(waypoints.len() - 2);
+                                let t_frac = t_prog.fract();
+
+                                let (tx, ty) =
+                                    get_spline_pt(waypoints[t_idx], waypoints[t_idx + 1], t_frac);
+
+                                let fade = 1.0 - (t as f32 / trail_pts as f32);
+                                let size = (13.0 * fade).max(2.0);
+
+                                window.paint_quad(
+                                    gpui::fill(
+                                        gpui::Bounds::new(
+                                            bounds.origin
+                                                + gpui::point(
+                                                    px(tx - size / 2.0),
+                                                    px(ty - size / 2.0),
+                                                ),
+                                            gpui::size(px(size), px(size)),
+                                        ),
+                                        accent_color,
+                                    )
+                                    .corner_radii(px(size / 2.0)),
+                                );
+                            }
+
+                            let ball_size = 14.0;
+                            window.paint_quad(
+                                gpui::fill(
+                                    gpui::Bounds::new(
+                                        bounds.origin
+                                            + gpui::point(
+                                                px(ball_x - ball_size / 2.0),
+                                                px(ball_y - ball_size / 2.0),
+                                            ),
+                                        gpui::size(px(ball_size), px(ball_size)),
+                                    ),
+                                    accent_color,
+                                )
+                                .corner_radii(px(ball_size / 2.0)),
+                            );
+                        },
+                    ))
+                    .children(pipeline_steps.into_iter().map(|step| {
+                        let is_top = step.y_pos < 90.0;
                         div()
                             .absolute()
-                            .size_full()
-                            .border_1()
-                            .border_color(theme.border_color)
-                            .opacity(0.1),
-                    )
-                    .child(
-                        div()
-                            .absolute()
-                            .top_3()
-                            .left_3()
-                            .size(px(16.0))
-                            .border_t_2()
-                            .border_l_2()
-                            .border_color(if self.is_active {
-                                theme.accent
-                            } else {
-                                theme.border_color
-                            }),
-                    )
-                    .child(
-                        div()
-                            .absolute()
-                            .top_3()
-                            .right_3()
-                            .size(px(16.0))
-                            .border_t_2()
-                            .border_r_2()
-                            .border_color(if self.is_active {
-                                theme.accent
-                            } else {
-                                theme.border_color
-                            }),
-                    )
-                    .child(
-                        div()
-                            .absolute()
-                            .bottom_3()
-                            .left_3()
-                            .size(px(16.0))
-                            .border_b_2()
-                            .border_l_2()
-                            .border_color(if self.is_active {
-                                theme.accent
-                            } else {
-                                theme.border_color
-                            }),
-                    )
-                    .child(
-                        div()
-                            .absolute()
-                            .bottom_3()
-                            .right_3()
-                            .size(px(16.0))
-                            .border_b_2()
-                            .border_r_2()
-                            .border_color(if self.is_active {
-                                theme.accent
-                            } else {
-                                theme.border_color
-                            }),
-                    )
-                    // Live Telemetry Hex Overlay (Top Left inside viewport)
-                    .child(
-                        v_flex()
-                            .absolute()
-                            .top_4()
-                            .left_6()
-                            .gap_0p5()
-                            .font_family("Consolas")
-                            .text_xs()
-                            .text_color(theme.text_muted)
-                            .opacity(0.7)
-                            .child(format!("HEX: 0x{:04X}", hex_val1))
-                            .child(format!("FREQ: {}00 Hz", hex_val2))
-                            .child(if self.is_active {
-                                "STREAM: RAW_HID"
-                            } else {
-                                "STREAM: OFF"
-                            }),
-                    )
-                    // Live Telemetry Status (Top Right inside viewport)
-                    .child(
-                        v_flex()
-                            .absolute()
-                            .top_4()
-                            .right_6()
-                            .items_end()
-                            .gap_0p5()
-                            .font_family("Consolas")
-                            .text_xs()
-                            .text_color(theme.text_muted)
-                            .opacity(0.7)
-                            .child(format!("T_STAMP: {}", elapsed_ms % 100000))
-                            .child("AUTO_EXEC: YES")
-                            .child(if self.is_active {
-                                "LNK_STATUS: OK"
-                            } else {
-                                "LNK_STATUS: WAIT"
-                            }),
-                    )
-                    // Dual-Axis Animated Sweeping Lasers
-                    .when(self.is_active, |this| {
-                        this
-                            // Horizontal Primary Red Laser
-                            .child(
-                                div()
-                                    .absolute()
-                                    .left_0()
-                                    .right_0()
-                                    .top(gpui::relative((pos_pct - 2.0).max(0.0) / 100.0))
-                                    .h(px(12.0))
-                                    .bg(theme.accent)
-                                    .opacity(0.12),
-                            )
-                            .child(
-                                div()
-                                    .absolute()
-                                    .left_0()
-                                    .right_0()
-                                    .top(gpui::relative(pos_pct / 100.0))
-                                    .h(px(2.0))
-                                    .bg(theme.accent),
-                            )
-                            // Vertical Matrix Scanner Column
-                            .child(
-                                div()
-                                    .absolute()
-                                    .top_0()
-                                    .bottom_0()
-                                    .left(gpui::relative(vert_pos_pct / 100.0))
-                                    .w(px(2.0))
-                                    .bg(theme.accent)
-                                    .opacity(0.25),
-                            )
-                    })
-                    // Center Animated Radar Reticle
-                    .child(
-                        v_flex()
+                            .left(gpui::DefiniteLength::Fraction(step.x_pct))
+                            .top(px(step.y_pos))
+                            .ml(px(-22.0))
+                            .mt(px(-22.0))
+                            .flex()
+                            .flex_col()
                             .items_center()
-                            .gap_4()
                             .child(
                                 div()
-                                    .relative()
-                                    .size(px(144.0))
+                                    .size(px(44.0))
                                     .rounded_full()
+                                    .bg(theme.bg_surface)
                                     .border_2()
-                                    .border_color(if self.is_active {
+                                    .border_color(if active {
                                         theme.accent
                                     } else {
-                                        theme.border_color
+                                        theme.border_subtle
                                     })
+                                    .shadow_md()
                                     .flex()
                                     .items_center()
                                     .justify_center()
-                                    // Crosshair Horizontal & Vertical
-                                    .child(div().absolute().w_full().h_0p5().bg(theme.border_color))
-                                    .child(div().absolute().h_full().w_0p5().bg(theme.border_color))
-                                    .child(
-                                        div()
-                                            .relative()
-                                            .size(px(96.0))
-                                            .rounded_full()
-                                            .border_1()
-                                            .border_color(if self.is_active {
-                                                theme.accent
-                                            } else {
-                                                theme.border_color
-                                            })
-                                            .flex()
-                                            .items_center()
-                                            .justify_center()
-                                            // Glowing Inner Core Dot
-                                            .child(div().size(px(24.0)).rounded_full().bg(
-                                                if self.is_active {
-                                                    theme.accent
-                                                } else {
-                                                    theme.text_muted
-                                                },
-                                            )),
-                                    ),
+                                    .child(Icon::new(step.icon).size(px(20.0)).text_color(
+                                        if active {
+                                            theme.accent
+                                        } else {
+                                            theme.text_muted
+                                        },
+                                    )),
                             )
                             .child(
                                 div()
+                                    .absolute()
+                                    .top(if is_top { px(-24.0) } else { px(50.0) })
+                                    .whitespace_nowrap()
                                     .text_xs()
-                                    .font_family("Consolas")
                                     .font_bold()
-                                    .text_color(if self.is_active {
-                                        theme.accent
+                                    .text_color(if active {
+                                        theme.text_main
                                     } else {
                                         theme.text_muted
                                     })
-                                    .child(if self.is_active {
-                                        ">> PASS BARCODE THROUGH LASER BEAM <<"
-                                    } else {
-                                        "!! ENGINE IDLE - CLICK ACTIVATE !!"
-                                    }),
-                            ),
-                    )
-                    // Bottom Bouncing Audio Equalizer Bar Visualization
-                    .child(h_flex().absolute().bottom_4().gap_1().items_end().children(
-                        (0..16).map(|i| {
-                            let bar_h = if self.is_active {
-                                (((elapsed_ms / 50 + i * 17) % 24) + 6) as f32
-                            } else {
-                                4.0
-                            };
-                            div()
-                                .w(px(3.0))
-                                .h(px(bar_h))
-                                .rounded_sm()
-                                .bg(if self.is_active {
-                                    theme.accent
-                                } else {
-                                    theme.border_color
-                                })
-                        }),
-                    )),
-            )
-            // --- Bottom Stats Cards ---
-            .child(
-                h_flex()
-                    .w_full()
-                    .gap_4()
-                    .child(
-                        v_flex()
-                            .flex_1()
-                            .p_4()
-                            .rounded_lg()
-                            .bg(theme.bg_app)
-                            .border_1()
-                            .border_color(theme.border_color)
-                            .child(
-                                div()
-                                    .text_xs()
-                                    .font_bold()
-                                    .text_color(theme.text_muted)
-                                    .child("SCANNED BATCH"),
+                                    .child(step.label),
                             )
-                            .child(
-                                div()
-                                    .text_2xl()
-                                    .font_black()
-                                    .text_color(theme.text_main)
-                                    .child(format!("{} Bills", self.total_scanned)),
-                            ),
-                    )
-                    .child(
-                        v_flex()
-                            .flex_1()
-                            .p_4()
-                            .rounded_lg()
-                            .bg(theme.bg_app)
-                            .border_1()
-                            .border_color(theme.border_color)
-                            .child(
-                                div()
-                                    .text_xs()
-                                    .font_bold()
-                                    .text_color(theme.text_muted)
-                                    .child("BATCH TOTAL"),
-                            )
-                            .child(
-                                div()
-                                    .text_2xl()
-                                    .font_black()
-                                    .text_color(theme.accent)
-                                    .child(format!("Rs. {}", self.total_amount)),
-                            ),
-                    ),
+                    })),
             )
     }
 }

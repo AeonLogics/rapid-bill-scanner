@@ -1,6 +1,6 @@
-use crate::states::Deck;
+use crate::states::{Deck, GlobalDeck};
 use gpui::prelude::*;
-use gpui::{App, IntoElement, RenderOnce, Styled, Window, div, px};
+use gpui::{App, IntoElement, MouseButton, RenderOnce, Styled, Window, div, px};
 use gpui_component::{Icon, StyledExt, h_flex};
 use primitives::ThemeController;
 
@@ -10,10 +10,7 @@ pub struct DeckButton(pub Deck);
 impl RenderOnce for DeckButton {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
         let theme = cx.global::<ThemeController>();
-        let current_deck = cx.global::<Deck>();
-        let is_selected = *current_deck == self.0;
-
-        // Use bg_sunken when selected so it indents nicely into the white bg_surface panel
+        let is_selected = GlobalDeck::active(cx) == self.0;
         let bg = if is_selected {
             theme.bg_sunken
         } else {
@@ -31,6 +28,8 @@ impl RenderOnce for DeckButton {
         } else {
             gpui::rgba(0x00000000)
         };
+
+        let target_deck = self.0;
 
         h_flex()
             .w_full()
@@ -50,6 +49,9 @@ impl RenderOnce for DeckButton {
                 }
             })
             .cursor_pointer()
+            .on_mouse_down(MouseButton::Left, move |_event, _window, cx| {
+                GlobalDeck::set(cx, target_deck);
+            })
             .child(
                 h_flex()
                     .items_center()
